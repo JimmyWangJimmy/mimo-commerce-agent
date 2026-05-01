@@ -1,0 +1,13 @@
+[project]
+name = "mimo-commerce-agent"
+version = "0.1.0"
+description = "Turn customer feedback into commerce growth actions with MiMo."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+mimo-commerce-agent = "revenue_agent.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
