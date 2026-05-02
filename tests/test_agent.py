@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
+from revenue_agent.playbook import load_playbook
 from revenue_agent.render import write_outputs
 
 
@@ -11,11 +12,14 @@ class AgentTest(unittest.TestCase):
     def test_fallback_plan_has_revenue_actions(self):
         product = load_product("examples/product.json")
         reviews = load_reviews("examples/reviews.csv")
-        plan = fallback_plan(product, reviews)
+        playbook = load_playbook(product["category"])
+        plan = fallback_plan(product, reviews, playbook)
         self.assertGreaterEqual(len(plan["pain_map"]), 2)
         self.assertGreaterEqual(len(plan["creative_tests"]), 2)
         self.assertIn("landing_page_copy", plan)
         self.assertIn("dm_scripts", plan)
+        self.assertIn("decision_board", plan)
+        self.assertEqual(plan["playbook"]["category"], "ready-to-drink tea")
 
     def test_render_outputs(self):
         product = load_product("examples/product.json")
@@ -32,4 +36,3 @@ class AgentTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

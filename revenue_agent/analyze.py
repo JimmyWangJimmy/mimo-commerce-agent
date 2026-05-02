@@ -16,6 +16,15 @@ PAIN_KEYWORDS = {
     "effect": ["没用", "效果", "健康", "睡", "fat", "energy", "healthy"],
 }
 
+PAIN_LABELS = {
+    "taste": "口感不确定",
+    "trust": "成分信任",
+    "price": "价格阻力",
+    "packaging": "包装体验",
+    "delivery": "物流体验",
+    "effect": "效果预期",
+}
+
 
 def load_product(path: str | Path) -> dict:
     return json.loads(Path(path).read_text("utf-8"))
@@ -43,7 +52,7 @@ def detect_pains(reviews: list[dict]) -> list[dict]:
     total = max(len(reviews), 1)
     return [
         {
-            "pain": pain,
+            "pain": PAIN_LABELS.get(pain, pain),
             "share": round(count / total, 3),
             "mentions": count,
             "evidence": evidence[pain],
@@ -73,7 +82,7 @@ def keyword_cloud(reviews: list[dict], limit: int = 30) -> list[dict]:
     return [{"term": term, "count": count} for term, count in words.most_common(limit)]
 
 
-def fallback_plan(product: dict, reviews: list[dict]) -> dict:
+def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = None) -> dict:
     pains = detect_pains(reviews)
     top_pain = pains[0]["pain"] if pains else "trust"
     name = product["name"]
@@ -82,31 +91,31 @@ def fallback_plan(product: dict, reviews: list[dict]) -> dict:
     return {
         "source": "local-fallback",
         "executive_summary": (
-            f"Position {name} around the highest-friction buyer concern: {top_pain}. "
-            "The first campaign should not sell features; it should turn review anxiety into a simple buying test."
+            f"这批评论里最该先处理的是「{PAIN_LABELS.get(top_pain, top_pain)}」。"
+            f"先别急着把 {name} 包装得多高级，用户现在怕的是买错。第一轮内容就做避坑和试饮。"
         ),
         "pain_map": pains,
         "positioning_angles": [
             {
-                "angle": "Proof before promise",
-                "why_it_matters": "Skeptical buyers convert when the ad shows how to verify the claim.",
-                "message": f"Do not trust {name}; check these three signals before buying.",
+                "angle": "先证据，后承诺",
+                "why_it_matters": "用户已经被“0糖0卡”教育麻了。你再喊一遍没用，直接教他看配料表。",
+                "message": f"别急着相信 {name}，先用这 3 个信号判断值不值得买。",
             },
             {
-                "angle": "Hidden cost of the cheap alternative",
-                "why_it_matters": "Competitor pain makes price objections easier to reframe.",
-                "message": "Cheap substitutes cost more when taste, ingredients, or returns fail.",
+                "angle": "便宜替代品的隐藏成本",
+                "why_it_matters": "有人嫌贵，就别跟他讲品牌。拿便宜货容易踩的坑去对比。",
+                "message": "便宜不等于省钱，口感、成分、退货体验都会变成隐藏成本。",
             },
             {
-                "angle": "One-minute buying checklist",
-                "why_it_matters": "Checklist content earns saves and gives support teams a conversion script.",
-                "message": f"Use this checklist before choosing {product.get('category', 'this product')}.",
+                "angle": "一分钟购买清单",
+                "why_it_matters": "清单好用，客服能照着回，达人也能照着拍。",
+                "message": f"买{product.get('category', '这类产品')}前，先照这张清单过一遍。",
             },
         ],
         "creative_tests": [
             {
-                "name": "Review autopsy",
-                "hypothesis": f"{audience} will respond to a teardown of common bad reviews.",
+                "name": "差评拆解",
+                "hypothesis": f"先测差评拆解。{audience} 不是不想买，是怕又买到一瓶代糖水。",
                 "hook": f"买{name}前，先看这 3 条差评。",
                 "script": [
                     "先别急着下单，差评里藏着真正的购买标准。",
@@ -115,11 +124,11 @@ def fallback_plan(product: dict, reviews: list[dict]) -> dict:
                     f"第三，用这个标准判断{name}是不是值得试。",
                     offer,
                 ],
-                "success_metric": "save rate and product-page click-through",
+                "success_metric": "看收藏率和评论区有没有人问“怎么买/哪里买”。",
             },
             {
-                "name": "Ingredient / feature receipt",
-                "hypothesis": "Specific proof beats broad lifestyle promises.",
+                "name": "证据小票",
+                "hypothesis": "别讲生活方式，先把证据摊出来。这个品类用户会看配料。",
                 "hook": "真正该看的不是广告，是这张清单。",
                 "script": [
                     "大多数产品都在讲感觉，少数产品敢给证据。",
@@ -127,18 +136,18 @@ def fallback_plan(product: dict, reviews: list[dict]) -> dict:
                     "你会发现坑通常藏在没写清楚的地方。",
                     f"{name} 的卖点要用可检查证据讲出来。",
                 ],
-                "success_metric": "comment questions and DM intent",
+                "success_metric": "看私信领取清单的人数。",
             },
         ],
         "creator_brief": {
-            "target_creator": "Practical comparison creator with trusted shopping tone",
-            "deliverables": ["30s short video", "3-frame image post", "comment reply script"],
+            "target_creator": "擅长真实测评和避坑清单的实用型达人",
+            "deliverables": ["30 秒短视频", "3 张图文笔记", "评论区回复话术"],
             "must_show": product.get("proof_points", []),
-            "avoid": ["generic lifestyle claims", "over-polished studio tone"],
+            "avoid": ["空泛生活方式表达", "过度精修的棚拍感", "没有证据的健康承诺"],
         },
         "landing_page_copy": {
-            "headline": f"Stop guessing. Use real buyer signals to choose {name}.",
-            "subhead": "A simple proof-led offer built from customer feedback, not marketing adjectives.",
+            "headline": f"别靠感觉买 {name}，用真实买家信号判断。",
+            "subhead": "这不是堆营销形容词，而是把评论里的顾虑拆成可验证证据。",
             "bullets": product.get("proof_points", [])[:5],
             "cta": offer,
         },
@@ -153,15 +162,32 @@ def fallback_plan(product: dict, reviews: list[dict]) -> dict:
             },
         ],
         "seven_day_plan": [
-            "Day 1: publish review-autopsy creative and collect objections",
-            "Day 2: turn top comments into FAQ image post",
-            "Day 3: test checklist hook against proof hook",
-            "Day 4: DM everyone asking price/ingredients/features",
-            "Day 5: publish competitor comparison without naming competitor",
-            "Day 6: compile saves/comments into second offer angle",
-            "Day 7: keep the winning hook, rewrite the first three seconds, retest",
+            "第 1 天：发布差评拆解视频，收集评论区反对意见",
+            "第 2 天：把高频问题做成 FAQ 图文笔记",
+            "第 3 天：测试“购买清单”钩子和“证据小票”钩子",
+            "第 4 天：私信跟进所有问价格、成分、效果的人",
+            "第 5 天：发布不点名竞品对比内容",
+            "第 6 天：把收藏和评论整理成第二轮卖点",
+            "第 7 天：保留胜出钩子，重写前三秒，再测一轮",
         ],
         "voice_of_customer": extract_voice_of_customer(reviews),
         "keyword_cloud": keyword_cloud(reviews),
+        "playbook": playbook or {},
+        "decision_board": {
+            "ship_today": [
+                "差评拆解短视频",
+                "配料表翻瓶挑战",
+                "评论区领取避坑清单",
+            ],
+            "kill_if": [
+                "发出 24 小时后收藏率低于 3%",
+                "评论区只讨论价格，没有人问购买链接",
+                "私信领取清单人数低于 10 人",
+            ],
+            "double_down_if": [
+                "有人主动问在哪里买",
+                "评论开始复述“只有茶叶和水”",
+                "用户把竞品配料表发来让你判断",
+            ],
+        },
     }
-

@@ -6,6 +6,7 @@ import sys
 
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
 from revenue_agent.mimo import MiMoError, call_mimo_json
+from revenue_agent.playbook import load_playbook
 from revenue_agent.prompts import campaign_prompt
 from revenue_agent.render import write_outputs
 
@@ -16,6 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reviews", required=True, help="Review CSV path.")
     parser.add_argument("--out", default="output/demo", help="Output directory.")
     parser.add_argument("--use-mimo", action="store_true", help="Call Xiaomi MiMo instead of local fallback.")
+    parser.add_argument("--playbook", help="Optional category playbook JSON path.")
     return parser.parse_args()
 
 
@@ -23,13 +25,15 @@ def main() -> None:
     args = parse_args()
     product = load_product(args.product)
     reviews = load_reviews(args.reviews)
-    local = fallback_plan(product, reviews)
+    playbook = load_playbook(product.get("category", "default"), args.playbook)
+    local = fallback_plan(product, reviews, playbook)
     plan = local
     if args.use_mimo:
         try:
-            prompt = campaign_prompt(product, reviews, local)
+            prompt = campaign_prompt(product, reviews, local, playbook)
             plan = call_mimo_json(prompt)
             plan.setdefault("source", "mimo")
+            plan.setdefault("playbook", playbook)
         except (MiMoError, json.JSONDecodeError, KeyError) as exc:
             print(f"MiMo unavailable; using local fallback: {exc}", file=sys.stderr)
             plan = local
@@ -39,4 +43,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

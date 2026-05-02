@@ -11,6 +11,8 @@ It is a narrow wedge for commerce teams: ingest product context, reviews, and co
 - landing-page copy
 - DM and support conversion scripts
 - seven-day growth experiment plan
+- decision board for what to ship, kill, or double down on
+- category playbook memory for reusable channel/category rules
 
 The model call uses Xiaomi MiMo Token Plan when `MIMO_API_KEY` and `MIMO_BASE_URL` are set. The repo keeps secrets out of disk and falls back to a deterministic local planner when credentials are missing.
 
@@ -38,6 +40,14 @@ python3 -m revenue_agent.cli \
 
 Open `output/demo/index.html` or `output/mimo-demo/index.html` after running.
 
+Or serve the generated report locally:
+
+```bash
+python3 -m http.server 8787 --directory output/mimo-demo
+```
+
+Then open `http://127.0.0.1:8787/index.html`.
+
 ## Product Thesis
 
 Most AI content tools stop at copy. Commerce operators need actions tied to revenue:
@@ -48,6 +58,17 @@ reviews -> pain points -> offer angles -> creative tests -> DM/support scripts -
 
 This repo is the first slice of a larger agentic commerce OS.
 
+## Category Playbooks
+
+Playbooks live under `playbooks/`. The CLI automatically loads a playbook whose filename matches the product category slug. For example:
+
+```text
+category: ready-to-drink tea
+playbook: playbooks/ready-to-drink-tea.json
+```
+
+The point is to avoid starting from a blank prompt every time. Each category can remember common objections, winning content patterns, bad patterns, and the metrics that matter.
+
 ## Environment
 
 - Python 3.11+
@@ -55,4 +76,3 @@ This repo is the first slice of a larger agentic commerce OS.
 - Optional MiMo API:
   - `MIMO_API_KEY`
   - `MIMO_BASE_URL`
-
