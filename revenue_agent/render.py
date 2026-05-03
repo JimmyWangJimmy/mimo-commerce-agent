@@ -50,6 +50,11 @@ def render_markdown(plan: dict) -> str:
             lines.extend(["", f"### {label}"])
             for item in board.get(key, []):
                 lines.append(f"- {item}")
+    loop = plan.get("learning_loop") or {}
+    if loop:
+        lines.extend(["", "## 跑完之后学到了什么", "", loop.get("learning", "")])
+        for item in loop.get("next_bets", []):
+            lines.append(f"- {item}")
     return "\n".join(lines) + "\n"
 
 
@@ -60,6 +65,7 @@ def _card(title: str, body: str) -> str:
 def render_html(plan: dict) -> str:
     board = plan.get("decision_board") or {}
     playbook = plan.get("playbook") or {}
+    loop = plan.get("learning_loop") or {}
     source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
     pains = "".join(
         f"<tr><td>{html.escape(str(p.get('pain')))}</td><td>{p.get('mentions')}</td><td>{p.get('share')}</td><td>{html.escape(' / '.join(p.get('evidence', [])[:2]))}</td></tr>"
@@ -95,6 +101,36 @@ def render_html(plan: dict) -> str:
     playbook_items.extend(playbook.get("winning_patterns") or [])
     playbook_items.extend(playbook.get("known_objections") or [])
     playbook_rules = "".join(f"<li>{html.escape(str(item))}</li>" for item in playbook_items[:6])
+    result_rows = "".join(
+        "<tr>"
+        f"<td>{html.escape(str(row.get('experiment', '')))}</td>"
+        f"<td>{html.escape(str(row.get('channel', '')))}</td>"
+        f"<td>{html.escape(str(row.get('hook', '')))}</td>"
+        f"<td>{row.get('save_rate', 0):.1%}</td>"
+        f"<td>{row.get('click_rate', 0):.1%}</td>"
+        f"<td>{int(row.get('orders') or 0)}</td>"
+        f"<td>{row.get('roas', 0)}</td>"
+        "</tr>"
+        for row in loop.get("rows", [])
+    )
+    next_bets = "".join(f"<li>{html.escape(str(item))}</li>" for item in loop.get("next_bets", []))
+    learning_section = ""
+    if loop:
+        learning_section = _card(
+            "跑完之后学到了什么",
+            f"""
+            <p class="summary-small">{html.escape(loop.get('learning', ''))}</p>
+            <div class="metric-row">
+              <div><b>总花费</b><strong>{loop.get('totals', {}).get('spend', 0)}</strong></div>
+              <div><b>总收入</b><strong>{loop.get('totals', {}).get('revenue', 0)}</strong></div>
+              <div><b>订单</b><strong>{loop.get('totals', {}).get('orders', 0)}</strong></div>
+              <div><b>ROAS</b><strong>{loop.get('totals', {}).get('roas', 0)}</strong></div>
+            </div>
+            <table><thead><tr><th>实验</th><th>渠道</th><th>开头</th><th>收藏率</th><th>点击率</th><th>订单</th><th>ROAS</th></tr></thead><tbody>{result_rows}</tbody></table>
+            <h3>下一轮只做这些</h3><ul>{next_bets}</ul>
+            <p><b>沉淀进手册：</b>{html.escape(loop.get('playbook_update', ''))}</p>
+            """,
+        )
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -112,6 +148,7 @@ def render_html(plan: dict) -> str:
     h3 {{ margin: 0 0 10px; font-size: 20px; }}
     section {{ padding: 28px 0; border-bottom: 1px solid var(--line); }}
     .summary {{ max-width: 780px; font-size: 20px; color: #26332d; }}
+    .summary-small {{ max-width: 820px; font-size: 18px; color: #26332d; }}
     .meta {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }}
     .pill {{ display: inline-flex; align-items: center; padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #33413b; font-size: 13px; }}
     .decision {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }}
@@ -130,6 +167,10 @@ def render_html(plan: dict) -> str:
     .tests {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }}
     .hook {{ display: inline-block; margin: 8px 0 12px; padding: 8px 10px; color: white; background: var(--green); border-radius: 6px; font-weight: 700; }}
     .source {{ color: var(--muted); font-size: 14px; }}
+    .metric-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }}
+    .metric-row div {{ background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px; }}
+    .metric-row b {{ display: block; color: var(--muted); font-size: 13px; font-weight: 500; }}
+    .metric-row strong {{ display: block; margin-top: 4px; font-size: 26px; }}
   </style>
 </head>
 <body>
@@ -148,6 +189,7 @@ def render_html(plan: dict) -> str:
     </div>
   </header>
   <main>
+    {learning_section}
     {_card("用户到底卡在哪", f"<table><thead><tr><th>问题</th><th>提到几次</th><th>占比</th><th>原话</th></tr></thead><tbody>{pains}</tbody></table>")}
     {_card("类目手册里已经知道的事", f"<ul class='grid'>{playbook_rules}</ul>" if playbook_rules else "<p>这个类目还没有沉淀规则，先用本次评论跑第一轮。</p>")}
     {_card("别怎么卖，要这么说", f"<ul class='grid'>{angles}</ul>")}

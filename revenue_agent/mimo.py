@@ -69,9 +69,10 @@ def call_mimo_json(prompt: str, max_tokens: int = 4096, temperature: float = 0.6
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise MiMoError(f"MiMo HTTP {exc.code}: {body}") from exc
+    except TimeoutError as exc:
+        raise MiMoError(f"MiMo request timed out: {exc}") from exc
     except urllib.error.URLError as exc:
         raise MiMoError(f"MiMo request failed: {exc}") from exc
 
     content = data["choices"][0]["message"]["content"]
     return extract_json(content)
-

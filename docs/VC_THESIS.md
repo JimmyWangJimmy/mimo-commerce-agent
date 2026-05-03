@@ -33,3 +33,8 @@ The model is not the moat. The moat is the loop:
 customer feedback -> generated actions -> channel performance -> category playbook -> better actions
 ```
 
+## Why the Result Loop Matters
+
+The useful product is not "generate three scripts." The useful product is knowing what to do after the first three scripts have data.
+
+The demo now accepts experiment results with spend, revenue, orders, saves, clicks, and DMs. It ranks experiments, points out what to kill, and produces a category playbook update. That is the seed of a data moat: every customer run can make the next run less generic.

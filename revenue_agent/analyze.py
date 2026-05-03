@@ -82,7 +82,7 @@ def keyword_cloud(reviews: list[dict], limit: int = 30) -> list[dict]:
     return [{"term": term, "count": count} for term, count in words.most_common(limit)]
 
 
-def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = None) -> dict:
+def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = None, results_summary: dict | None = None) -> dict:
     pains = detect_pains(reviews)
     top_pain = pains[0]["pain"] if pains else "trust"
     name = product["name"]
@@ -190,4 +190,5 @@ def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = No
                 "用户把竞品配料表发来让你判断",
             ],
         },
+        "learning_loop": results_summary or {},
     }

@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 
 
-def campaign_prompt(product: dict, reviews: list[dict], local_analysis: dict, playbook: dict | None = None) -> str:
+def campaign_prompt(
+    product: dict,
+    reviews: list[dict],
+    local_analysis: dict,
+    playbook: dict | None = None,
+    results_summary: dict | None = None,
+) -> str:
     compact_reviews = [
         {
             "rating": row.get("rating"),
@@ -17,6 +23,7 @@ def campaign_prompt(product: dict, reviews: list[dict], local_analysis: dict, pl
         "reviews": compact_reviews,
         "local_analysis": local_analysis,
         "category_playbook": playbook or {},
+        "experiment_results": results_summary or {},
     }
     return f"""
 你是一个每天要对 GMV 负责的电商增长负责人，不是咨询顾问，也不是文案工具。
@@ -66,6 +73,15 @@ def campaign_prompt(product: dict, reviews: list[dict], local_analysis: dict, pl
     "category": "类目",
     "learned_rule": "这次样本沉淀出的打法"
   }},
+  "learning_loop": {{
+    "learning": "如果有实验结果，这轮学到了什么",
+    "rows": [],
+    "winner": {{}},
+    "loser": {{}},
+    "totals": {{}},
+    "next_bets": ["下一轮怎么加码"],
+    "playbook_update": "应该沉淀进类目手册的话"
+  }},
   "voice_of_customer": ["高价值原声评论"],
   "keyword_cloud": [{{"term": "词", "count": 1}}]
 }}
@@ -81,6 +97,7 @@ def campaign_prompt(product: dict, reviews: list[dict], local_analysis: dict, pl
 - 脚本要有人味，别每句都像广告语。可以用“先别买”“这个坑挺常见”“我会先测这个”这种表达。
 - decision_board 必须具体。老板看完要知道今天做什么、什么数据不好就停、什么信号出现就加码。
 - 如果输入里有 category_playbook，要利用它，但不要照抄。
+- 如果输入里有 experiment_results，必须利用真实表现修正建议，不要还像没投放过一样从零判断。
 
 输入数据:
 {json.dumps(payload, ensure_ascii=False)}

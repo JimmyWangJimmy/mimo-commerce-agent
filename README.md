@@ -22,6 +22,7 @@ The model call uses Xiaomi MiMo Token Plan when `MIMO_API_KEY` and `MIMO_BASE_UR
 python3 -m revenue_agent.cli \
   --product examples/product.json \
   --reviews examples/reviews.csv \
+  --results examples/results.csv \
   --out output/demo
 ```
 
@@ -34,6 +35,7 @@ export MIMO_BASE_URL="https://token-plan-cn.xiaomimimo.com/v1"
 python3 -m revenue_agent.cli \
   --product examples/product.json \
   --reviews examples/reviews.csv \
+  --results examples/results.csv \
   --out output/mimo-demo \
   --use-mimo
 ```
@@ -54,6 +56,12 @@ Most AI content tools stop at copy. Commerce operators need actions tied to reve
 
 ```text
 reviews -> pain points -> offer angles -> creative tests -> DM/support scripts -> next experiments
+```
+
+With experiment results attached, the loop becomes:
+
+```text
+campaign results -> winner/loser -> next bet -> category playbook update
 ```
 
 This repo is the first slice of a larger agentic commerce OS.

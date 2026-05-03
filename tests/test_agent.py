@@ -6,6 +6,7 @@ from pathlib import Path
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
 from revenue_agent.playbook import load_playbook
 from revenue_agent.render import write_outputs
+from revenue_agent.results import load_results, summarize_results
 
 
 class AgentTest(unittest.TestCase):
@@ -32,6 +33,12 @@ class AgentTest(unittest.TestCase):
             self.assertTrue(campaign.exists())
             self.assertTrue(page.exists())
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
+
+    def test_results_summary_ranks_experiments(self):
+        summary = summarize_results(load_results("examples/results.csv"))
+        self.assertEqual(summary["winner"]["experiment"], "配料表翻瓶挑战")
+        self.assertGreater(summary["totals"]["roas"], 1)
+        self.assertIn("playbook_update", summary)
 
 
 if __name__ == "__main__":
