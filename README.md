@@ -50,6 +50,18 @@ python3 -m http.server 8787 --directory output/mimo-demo
 
 Then open `http://127.0.0.1:8787/index.html`.
 
+## Interactive Local Demo
+
+Run the zero-dependency local web app:
+
+```bash
+python3 -m revenue_agent.server
+```
+
+Then open `http://127.0.0.1:8788`.
+
+The app lets you paste product JSON, review CSV, and campaign result CSV, then generates the dashboard in the browser. Checking "使用 MiMo 生成文案" uses `MIMO_API_KEY` and `MIMO_BASE_URL` from the current shell only; secrets are not written to disk.
+
 ## Product Thesis
 
 Most AI content tools stop at copy. Commerce operators need actions tied to revenue:

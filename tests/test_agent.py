@@ -6,7 +6,8 @@ from pathlib import Path
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
 from revenue_agent.playbook import load_playbook
 from revenue_agent.render import write_outputs
-from revenue_agent.results import load_results, summarize_results
+from revenue_agent.results import load_results, parse_results, summarize_results
+from revenue_agent.server import build_plan
 
 
 class AgentTest(unittest.TestCase):
@@ -39,6 +40,19 @@ class AgentTest(unittest.TestCase):
         self.assertEqual(summary["winner"]["experiment"], "配料表翻瓶挑战")
         self.assertGreater(summary["totals"]["roas"], 1)
         self.assertIn("playbook_update", summary)
+
+    def test_parse_results_from_text(self):
+        text = "experiment,channel,hook,impressions,views,saves,clicks,dms,orders,spend,revenue\nA,抖音,h,100,80,8,4,2,1,10,30\n"
+        rows = parse_results(text)
+        self.assertEqual(rows[0]["orders"], 1)
+
+    def test_server_build_plan_without_mimo(self):
+        product = Path("examples/product.json").read_text("utf-8")
+        reviews = Path("examples/reviews.csv").read_text("utf-8")
+        results = Path("examples/results.csv").read_text("utf-8")
+        plan = build_plan(product, reviews, results, use_mimo=False)
+        self.assertEqual(plan["source"], "local-fallback")
+        self.assertIn("learning_loop", plan)
 
 
 if __name__ == "__main__":

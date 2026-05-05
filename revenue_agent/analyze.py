@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+from io import StringIO
 from collections import Counter
 from pathlib import Path
 
@@ -31,8 +32,12 @@ def load_product(path: str | Path) -> dict:
 
 
 def load_reviews(path: str | Path) -> list[dict]:
+    return parse_reviews(Path(path).read_text("utf-8-sig"))
+
+
+def parse_reviews(text: str) -> list[dict]:
     rows: list[dict] = []
-    with Path(path).open("r", encoding="utf-8-sig", newline="") as handle:
+    with StringIO(text) as handle:
         for row in csv.DictReader(handle):
             row["rating"] = float(row.get("rating") or 0)
             rows.append(row)

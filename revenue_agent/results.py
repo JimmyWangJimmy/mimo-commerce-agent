@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+from io import StringIO
 from pathlib import Path
 
 
@@ -10,8 +11,12 @@ NUMERIC_FIELDS = ("impressions", "views", "saves", "clicks", "dms", "orders", "s
 def load_results(path: str | Path | None) -> list[dict]:
     if not path:
         return []
+    return parse_results(Path(path).read_text("utf-8-sig"))
+
+
+def parse_results(text: str) -> list[dict]:
     rows: list[dict] = []
-    with Path(path).open("r", encoding="utf-8-sig", newline="") as handle:
+    with StringIO(text) as handle:
         for row in csv.DictReader(handle):
             parsed = dict(row)
             for field in NUMERIC_FIELDS:
@@ -71,4 +76,3 @@ def summarize_results(results: list[dict]) -> dict:
             f"低订单且低收藏的内容不要继续扩量。"
         ),
     }
-
