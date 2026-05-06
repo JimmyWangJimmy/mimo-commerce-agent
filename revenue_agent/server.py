@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
@@ -46,6 +47,9 @@ def build_plan(product_text: str, reviews_text: str, results_text: str, use_mimo
 
 
 def render_form(error: str = "") -> bytes:
+    has_mimo = bool(os.environ.get("MIMO_API_KEY"))
+    mimo_hint = "已检测到 MiMo key，默认会调用 MiMo。" if has_mimo else "当前服务进程没有 MiMo key，会使用本地兜底。"
+    mimo_checked = " checked" if has_mimo else ""
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -94,8 +98,8 @@ def render_form(error: str = "") -> bytes:
       </div>
       <div class="actions">
         <button type="submit">生成增长面板</button>
-        <label><input type="checkbox" name="use_mimo" value="1"> 使用 MiMo 生成文案</label>
-        <span class="hint">没有 MiMo 环境变量时会自动 fallback。</span>
+        <label><input type="checkbox" name="use_mimo" value="1"{mimo_checked}> 使用 MiMo 生成文案</label>
+        <span class="hint">{html.escape(mimo_hint)} MiMo 慢时可能需要等 30-90 秒。</span>
       </div>
     </form>
   </main>

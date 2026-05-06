@@ -67,6 +67,8 @@ def render_html(plan: dict) -> str:
     playbook = plan.get("playbook") or {}
     loop = plan.get("learning_loop") or {}
     source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
+    warnings = "".join(f"<p>{html.escape(str(item))}</p>" for item in plan.get("warnings", []))
+    warning_section = f"<div class='warning'>{warnings}</div>" if warnings else ""
     pains = "".join(
         f"<tr><td>{html.escape(str(p.get('pain')))}</td><td>{p.get('mentions')}</td><td>{p.get('share')}</td><td>{html.escape(' / '.join(p.get('evidence', [])[:2]))}</td></tr>"
         for p in plan.get("pain_map", [])
@@ -167,6 +169,8 @@ def render_html(plan: dict) -> str:
     .tests {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }}
     .hook {{ display: inline-block; margin: 8px 0 12px; padding: 8px 10px; color: white; background: var(--green); border-radius: 6px; font-weight: 700; }}
     .source {{ color: var(--muted); font-size: 14px; }}
+    .warning {{ margin: 18px 0 0; max-width: 820px; border: 1px solid #f0c9c2; background: #fff2ef; color: #8a3128; border-radius: 8px; padding: 12px 14px; }}
+    .warning p {{ margin: 0; }}
     .metric-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }}
     .metric-row div {{ background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px; }}
     .metric-row b {{ display: block; color: var(--muted); font-size: 13px; font-weight: 500; }}
@@ -182,6 +186,7 @@ def render_html(plan: dict) -> str:
     </div>
     <h1>今天先测这几件事</h1>
     <p class="summary">{html.escape(plan.get('executive_summary', ''))}</p>
+    {warning_section}
     <div class="decision">
       <div class="ship"><h3>今天上线</h3><ul>{ship}</ul></div>
       <div class="kill"><h3>这些情况就停</h3><ul>{kill}</ul></div>

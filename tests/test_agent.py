@@ -8,6 +8,7 @@ from revenue_agent.playbook import load_playbook
 from revenue_agent.render import write_outputs
 from revenue_agent.results import load_results, parse_results, summarize_results
 from revenue_agent.server import build_plan
+from revenue_agent.server import render_form
 
 
 class AgentTest(unittest.TestCase):
@@ -53,6 +54,10 @@ class AgentTest(unittest.TestCase):
         plan = build_plan(product, reviews, results, use_mimo=False)
         self.assertEqual(plan["source"], "local-fallback")
         self.assertIn("learning_loop", plan)
+
+    def test_server_form_renders_mimo_toggle(self):
+        body = render_form().decode("utf-8")
+        self.assertIn("使用 MiMo 生成文案", body)
 
 
 if __name__ == "__main__":
