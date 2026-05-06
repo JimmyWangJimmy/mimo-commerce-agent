@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -30,3 +31,22 @@ def load_playbook(category: str, explicit_path: str | None = None) -> dict:
         }
     return json.loads(path.read_text("utf-8"))
 
+
+def build_playbook_patch(plan: dict) -> dict:
+    playbook = plan.get("playbook") or {}
+    loop = plan.get("learning_loop") or {}
+    update = loop.get("playbook_update") or playbook.get("learned_rule")
+    if not update:
+        return {}
+    winner = loop.get("winner") or {}
+    loser = loop.get("loser") or {}
+    return {
+        "category": playbook.get("category") or "unknown",
+        "created_at": datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "source": plan.get("source", "unknown"),
+        "learned_rule": update,
+        "winning_pattern": winner.get("hook") or winner.get("experiment") or "",
+        "bad_pattern": loser.get("hook") or loser.get("experiment") or "",
+        "metrics": loop.get("totals", {}),
+        "next_experiments": loop.get("next_bets", []),
+    }

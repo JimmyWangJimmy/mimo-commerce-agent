@@ -4,6 +4,8 @@ import html
 import json
 from pathlib import Path
 
+from revenue_agent.playbook import build_playbook_patch
+
 
 def write_outputs(plan: dict, out_dir: str | Path) -> None:
     target = Path(out_dir)
@@ -11,6 +13,9 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "campaign.json").write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", "utf-8")
     (target / "index.html").write_text(render_html(plan), "utf-8")
     (target / "brief.md").write_text(render_markdown(plan), "utf-8")
+    patch = build_playbook_patch(plan)
+    if patch:
+        (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
 
 
 def render_markdown(plan: dict) -> str:
@@ -67,6 +72,8 @@ def render_html(plan: dict) -> str:
     playbook = plan.get("playbook") or {}
     loop = plan.get("learning_loop") or {}
     source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
+    patch = build_playbook_patch(plan)
+    patch_json = json.dumps(patch, ensure_ascii=False, indent=2) if patch else ""
     warnings = "".join(f"<p>{html.escape(str(item))}</p>" for item in plan.get("warnings", []))
     warning_section = f"<div class='warning'>{warnings}</div>" if warnings else ""
     pains = "".join(
@@ -131,6 +138,7 @@ def render_html(plan: dict) -> str:
             <table><thead><tr><th>实验</th><th>渠道</th><th>开头</th><th>收藏率</th><th>点击率</th><th>订单</th><th>ROAS</th></tr></thead><tbody>{result_rows}</tbody></table>
             <h3>下一轮只做这些</h3><ul>{next_bets}</ul>
             <p><b>沉淀进手册：</b>{html.escape(loop.get('playbook_update', ''))}</p>
+            {f'<h3>手册补丁</h3><pre>{html.escape(patch_json)}</pre>' if patch_json else ''}
             """,
         )
     return f"""<!doctype html>
@@ -175,6 +183,7 @@ def render_html(plan: dict) -> str:
     .metric-row div {{ background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px; }}
     .metric-row b {{ display: block; color: var(--muted); font-size: 13px; font-weight: 500; }}
     .metric-row strong {{ display: block; margin-top: 4px; font-size: 26px; }}
+    pre {{ white-space: pre-wrap; background: #101c17; color: #eaf3ee; border-radius: 8px; padding: 14px; overflow-x: auto; }}
   </style>
 </head>
 <body>

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
-from revenue_agent.playbook import load_playbook
+from revenue_agent.playbook import build_playbook_patch, load_playbook
 from revenue_agent.render import write_outputs
 from revenue_agent.results import load_results, parse_results, summarize_results
 from revenue_agent.server import build_plan
@@ -27,14 +27,27 @@ class AgentTest(unittest.TestCase):
     def test_render_outputs(self):
         product = load_product("examples/product.json")
         reviews = load_reviews("examples/reviews.csv")
-        plan = fallback_plan(product, reviews)
+        results = summarize_results(load_results("examples/results.csv"))
+        playbook = load_playbook(product["category"])
+        plan = fallback_plan(product, reviews, playbook, results)
         with tempfile.TemporaryDirectory() as tmp:
             write_outputs(plan, tmp)
             campaign = Path(tmp) / "campaign.json"
             page = Path(tmp) / "index.html"
+            patch = Path(tmp) / "playbook_patch.json"
             self.assertTrue(campaign.exists())
             self.assertTrue(page.exists())
+            self.assertTrue(patch.exists())
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
+
+    def test_build_playbook_patch(self):
+        product = load_product("examples/product.json")
+        reviews = load_reviews("examples/reviews.csv")
+        results = summarize_results(load_results("examples/results.csv"))
+        plan = fallback_plan(product, reviews, load_playbook(product["category"]), results)
+        patch = build_playbook_patch(plan)
+        self.assertEqual(patch["category"], "ready-to-drink tea")
+        self.assertIn("learned_rule", patch)
 
     def test_results_summary_ranks_experiments(self):
         summary = summarize_results(load_results("examples/results.csv"))
