@@ -62,6 +62,16 @@ Then open `http://127.0.0.1:8788`.
 
 The app lets you paste product JSON, review CSV, and campaign result CSV, then generates the dashboard in the browser. Checking "使用 MiMo 生成文案" uses `MIMO_API_KEY` and `MIMO_BASE_URL` from the current shell only; secrets are not written to disk.
 
+## Applying Learning Back To A Playbook
+
+Generated reports include `playbook_patch.json` when experiment results are present. Apply that patch back into the category playbook:
+
+```bash
+python3 -m revenue_agent.playbook_cli output/demo/playbook_patch.json
+```
+
+This appends learned rules, winning hooks, bad patterns, next experiments, and a timestamped learning log.
+
 ## Product Thesis
 
 Most AI content tools stop at copy. Commerce operators need actions tied to revenue:

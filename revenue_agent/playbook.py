@@ -32,6 +32,19 @@ def load_playbook(category: str, explicit_path: str | None = None) -> dict:
     return json.loads(path.read_text("utf-8"))
 
 
+def playbook_path(category: str, explicit_path: str | None = None) -> Path:
+    if explicit_path:
+        return Path(explicit_path)
+    return PLAYBOOK_DIR / f"{slugify(category)}.json"
+
+
+def _append_unique(items: list, value: str) -> list:
+    value = (value or "").strip()
+    if value and value not in items:
+        items.append(value)
+    return items
+
+
 def build_playbook_patch(plan: dict) -> dict:
     playbook = plan.get("playbook") or {}
     loop = plan.get("learning_loop") or {}
@@ -50,3 +63,37 @@ def build_playbook_patch(plan: dict) -> dict:
         "metrics": loop.get("totals", {}),
         "next_experiments": loop.get("next_bets", []),
     }
+
+
+def apply_playbook_patch(patch: dict, explicit_path: str | None = None) -> tuple[Path, dict]:
+    category = patch.get("category") or "default"
+    path = playbook_path(category, explicit_path)
+    current = load_playbook(category, str(path)) if path.exists() else load_playbook(category)
+    current.setdefault("category", category)
+    current.setdefault("known_objections", [])
+    current.setdefault("winning_patterns", [])
+    current.setdefault("bad_patterns", [])
+    current.setdefault("metrics", [])
+    current.setdefault("next_experiments", [])
+    current.setdefault("learning_log", [])
+
+    _append_unique(current["winning_patterns"], patch.get("learned_rule", ""))
+    _append_unique(current["winning_patterns"], patch.get("winning_pattern", ""))
+    _append_unique(current["bad_patterns"], patch.get("bad_pattern", ""))
+    for experiment in patch.get("next_experiments", []):
+        _append_unique(current["next_experiments"], str(experiment))
+    metrics = patch.get("metrics") or {}
+    for metric in metrics:
+        _append_unique(current["metrics"], str(metric))
+    current["learning_log"].append(
+        {
+            "created_at": patch.get("created_at"),
+            "source": patch.get("source"),
+            "learned_rule": patch.get("learned_rule"),
+            "metrics": metrics,
+        }
+    )
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n", "utf-8")
+    return path, current

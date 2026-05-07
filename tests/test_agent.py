@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from revenue_agent.analyze import fallback_plan, load_product, load_reviews
-from revenue_agent.playbook import build_playbook_patch, load_playbook
+from revenue_agent.playbook import apply_playbook_patch, build_playbook_patch, load_playbook
 from revenue_agent.render import write_outputs
 from revenue_agent.results import load_results, parse_results, summarize_results
 from revenue_agent.server import build_plan
@@ -48,6 +48,18 @@ class AgentTest(unittest.TestCase):
         patch = build_playbook_patch(plan)
         self.assertEqual(patch["category"], "ready-to-drink tea")
         self.assertIn("learned_rule", patch)
+
+    def test_apply_playbook_patch(self):
+        product = load_product("examples/product.json")
+        reviews = load_reviews("examples/reviews.csv")
+        results = summarize_results(load_results("examples/results.csv"))
+        plan = fallback_plan(product, reviews, load_playbook(product["category"]), results)
+        patch = build_playbook_patch(plan)
+        with tempfile.TemporaryDirectory() as tmp:
+            path, playbook = apply_playbook_patch(patch, str(Path(tmp) / "tea.json"))
+            self.assertTrue(path.exists())
+            self.assertTrue(playbook["learning_log"])
+            self.assertIn(patch["learned_rule"], playbook["winning_patterns"])
 
     def test_results_summary_ranks_experiments(self):
         summary = summarize_results(load_results("examples/results.csv"))
