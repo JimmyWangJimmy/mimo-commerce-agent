@@ -48,7 +48,7 @@ def build_plan(product_text: str, reviews_text: str, results_text: str, use_mimo
 
 def render_form(error: str = "") -> bytes:
     has_mimo = bool(os.environ.get("MIMO_API_KEY"))
-    mimo_hint = "已检测到 MiMo key，默认会调用 MiMo。" if has_mimo else "当前服务进程没有 MiMo key，会使用本地兜底。"
+    mimo_hint = "已检测到 MiMo key，默认会调用 MiMo；如果 key 过期，结果页会显示原因并自动兜底。" if has_mimo else "当前服务进程没有 MiMo key，会使用本地兜底。"
     mimo_checked = " checked" if has_mimo else ""
     return f"""<!doctype html>
 <html lang="zh-CN">

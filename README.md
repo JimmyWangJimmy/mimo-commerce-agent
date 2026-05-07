@@ -42,6 +42,13 @@ python3 -m revenue_agent.cli \
 
 Open `output/demo/index.html` or `output/mimo-demo/index.html` after running.
 
+Each run writes:
+
+- `index.html`: full operator dashboard
+- `operator_onepager.html`: compact shareable execution memo
+- `investor_onepager.md`: product/VC one-pager
+- `playbook_patch.json`: category memory patch
+
 Or serve the generated report locally:
 
 ```bash

@@ -35,9 +35,13 @@ class AgentTest(unittest.TestCase):
             campaign = Path(tmp) / "campaign.json"
             page = Path(tmp) / "index.html"
             patch = Path(tmp) / "playbook_patch.json"
+            operator = Path(tmp) / "operator_onepager.html"
+            investor = Path(tmp) / "investor_onepager.md"
             self.assertTrue(campaign.exists())
             self.assertTrue(page.exists())
             self.assertTrue(patch.exists())
+            self.assertTrue(operator.exists())
+            self.assertTrue(investor.exists())
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
 
     def test_build_playbook_patch(self):

@@ -13,6 +13,8 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "campaign.json").write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", "utf-8")
     (target / "index.html").write_text(render_html(plan), "utf-8")
     (target / "brief.md").write_text(render_markdown(plan), "utf-8")
+    (target / "operator_onepager.html").write_text(render_operator_onepager(plan), "utf-8")
+    (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
     patch = build_playbook_patch(plan)
     if patch:
         (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -65,6 +67,110 @@ def render_markdown(plan: dict) -> str:
 
 def _card(title: str, body: str) -> str:
     return f"<section><h2>{html.escape(title)}</h2>{body}</section>"
+
+
+def _top_test(plan: dict) -> dict:
+    loop = plan.get("learning_loop") or {}
+    winner = loop.get("winner") or {}
+    if winner:
+        return winner
+    tests = plan.get("creative_tests") or []
+    return tests[0] if tests else {}
+
+
+def render_investor_onepager(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    patch = build_playbook_patch(plan)
+    top = _top_test(plan)
+    lines = [
+        "# MiMo Commerce Agent One-Pager",
+        "",
+        "## What It Does",
+        "",
+        "Turns customer reviews and campaign results into the next revenue actions for commerce teams.",
+        "",
+        "## Why It Matters",
+        "",
+        "Most AI content tools stop at copy. This product closes the loop from buyer feedback to creative tests to performance learning.",
+        "",
+        "## Current Demo Signal",
+        "",
+        f"- Summary: {plan.get('executive_summary', '')}",
+        f"- Winning action: {top.get('experiment') or top.get('name') or top.get('hook') or ''}",
+        f"- ROAS: {totals.get('roas', 'n/a')}",
+        f"- Orders: {totals.get('orders', 'n/a')}",
+        "",
+        "## Data Flywheel",
+        "",
+        "1. Ingest reviews and campaign results.",
+        "2. Generate what to ship, kill, and double down on.",
+        "3. Export a playbook patch.",
+        "4. Apply the patch back into the category playbook.",
+        "5. The next run starts with learned category memory.",
+        "",
+        "## Playbook Patch",
+        "",
+        "```json",
+        json.dumps(patch, ensure_ascii=False, indent=2),
+        "```",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def render_operator_onepager(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    board = plan.get("decision_board") or {}
+    top = _top_test(plan)
+    ship = "".join(f"<li>{html.escape(str(item))}</li>" for item in board.get("ship_today", [])[:4])
+    kill = "".join(f"<li>{html.escape(str(item))}</li>" for item in board.get("kill_if", [])[:4])
+    next_bets = "".join(f"<li>{html.escape(str(item))}</li>" for item in loop.get("next_bets", [])[:4])
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>增长执行一页纸</title>
+  <style>
+    body {{ margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17221d; background: #fbfcfa; }}
+    main {{ max-width: 980px; margin: auto; padding: 46px 6vw 70px; }}
+    h1 {{ font-size: 48px; line-height: 1.05; margin: 0 0 16px; letter-spacing: 0; }}
+    h2 {{ font-size: 20px; margin: 0 0 12px; }}
+    .summary {{ font-size: 21px; color: #26332d; max-width: 820px; }}
+    .metrics {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 26px 0; }}
+    .metric, section {{ background: white; border: 1px solid #d6ded9; border-radius: 8px; padding: 18px; }}
+    .metric b {{ display: block; color: #66736e; font-size: 13px; }}
+    .metric strong {{ display: block; margin-top: 4px; font-size: 30px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }}
+    ul {{ padding-left: 20px; margin: 0; }}
+    li + li {{ margin-top: 6px; }}
+    .hook {{ display: inline-block; margin-top: 10px; padding: 8px 10px; background: #116b55; color: white; border-radius: 6px; font-weight: 800; }}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>这轮增长怎么打</h1>
+    <p class="summary">{html.escape(plan.get('executive_summary', ''))}</p>
+    <div class="metrics">
+      <div class="metric"><b>总收入</b><strong>{totals.get('revenue', 0)}</strong></div>
+      <div class="metric"><b>订单</b><strong>{totals.get('orders', 0)}</strong></div>
+      <div class="metric"><b>ROAS</b><strong>{totals.get('roas', 0)}</strong></div>
+      <div class="metric"><b>胜出实验</b><strong>{html.escape(str(top.get('experiment') or top.get('name') or ''))}</strong></div>
+    </div>
+    <div class="grid">
+      <section><h2>今天上线</h2><ul>{ship}</ul></section>
+      <section><h2>这些情况就停</h2><ul>{kill}</ul></section>
+      <section><h2>下一轮只押这些</h2><ul>{next_bets}</ul></section>
+    </div>
+    <section style="margin-top:14px">
+      <h2>第一条内容怎么开头</h2>
+      <div class="hook">{html.escape(str(top.get('hook') or ''))}</div>
+    </section>
+  </main>
+</body>
+</html>
+"""
 
 
 def render_html(plan: dict) -> str:
