@@ -37,13 +37,17 @@ class AgentTest(unittest.TestCase):
             patch = Path(tmp) / "playbook_patch.json"
             operator = Path(tmp) / "operator_onepager.html"
             investor = Path(tmp) / "investor_onepager.md"
+            memory = Path(tmp) / "category_memory.html"
             self.assertTrue(campaign.exists())
             self.assertTrue(page.exists())
             self.assertTrue(patch.exists())
             self.assertTrue(operator.exists())
             self.assertTrue(investor.exists())
+            self.assertTrue(memory.exists())
             self.assertIn("下一轮预算", operator.read_text("utf-8"))
             self.assertIn("Next budget action", investor.read_text("utf-8"))
+            self.assertIn("这轮新增记忆", memory.read_text("utf-8"))
+            self.assertIn("Data Flywheel", memory.read_text("utf-8"))
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
 
     def test_build_playbook_patch(self):

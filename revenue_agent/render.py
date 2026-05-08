@@ -15,6 +15,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "brief.md").write_text(render_markdown(plan), "utf-8")
     (target / "operator_onepager.html").write_text(render_operator_onepager(plan), "utf-8")
     (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
+    (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     patch = build_playbook_patch(plan)
     if patch:
         (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -76,6 +77,68 @@ def _top_test(plan: dict) -> dict:
         return winner
     tests = plan.get("creative_tests") or []
     return tests[0] if tests else {}
+
+
+def _list_items(items: list, limit: int = 6) -> str:
+    return "".join(f"<li>{html.escape(str(item))}</li>" for item in items[:limit])
+
+
+def render_category_memory(plan: dict) -> str:
+    playbook = plan.get("playbook") or {}
+    patch = build_playbook_patch(plan)
+    loop = plan.get("learning_loop") or {}
+    existing_rules = []
+    existing_rules.extend(playbook.get("winning_patterns") or [])
+    existing_rules.extend(playbook.get("known_objections") or [])
+    next_experiments = patch.get("next_experiments") or loop.get("next_bets") or playbook.get("next_experiments") or []
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Category Memory</title>
+  <style>
+    body {{ margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17221d; background: #fbfcfa; }}
+    main {{ max-width: 1060px; margin: auto; padding: 44px 6vw 68px; }}
+    h1 {{ margin: 0 0 12px; font-size: 44px; line-height: 1.05; letter-spacing: 0; }}
+    h2 {{ margin: 0 0 12px; font-size: 22px; }}
+    .summary {{ max-width: 780px; font-size: 20px; color: #33413b; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 24px; }}
+    section {{ background: white; border: 1px solid #d6ded9; border-radius: 8px; padding: 18px; }}
+    ul, ol {{ margin: 0; padding-left: 20px; }}
+    li + li {{ margin-top: 7px; }}
+    pre {{ white-space: pre-wrap; background: #101c17; color: #eaf3ee; border-radius: 8px; padding: 14px; overflow-x: auto; }}
+    .new {{ border-color: #88b9a6; background: #f2faf6; }}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{html.escape(str(playbook.get('category') or patch.get('category') or 'Category'))} Memory</h1>
+    <p class="summary">Data Flywheel: 每次把评论、投放结果和预算判断合并成一条类目记忆，下次生成不再从空白提示开始。</p>
+    <div class="grid">
+      <section>
+        <h2>已有可复用规则</h2>
+        <ul>{_list_items(existing_rules)}</ul>
+      </section>
+      <section class="new">
+        <h2>这轮新增记忆</h2>
+        <p>{html.escape(str(patch.get('learned_rule') or '这轮还没有可写入的新增规则。'))}</p>
+        <p><b>胜出表达：</b>{html.escape(str(patch.get('winning_pattern') or ''))}</p>
+        <p><b>该停表达：</b>{html.escape(str(patch.get('bad_pattern') or ''))}</p>
+      </section>
+      <section>
+        <h2>下一轮实验</h2>
+        <ol>{_list_items(next_experiments)}</ol>
+      </section>
+    </div>
+    <section style="margin-top:14px">
+      <h2>Memory Patch JSON</h2>
+      <pre>{html.escape(json.dumps(patch, ensure_ascii=False, indent=2))}</pre>
+    </section>
+  </main>
+</body>
+</html>
+"""
 
 
 def render_investor_onepager(plan: dict) -> str:
