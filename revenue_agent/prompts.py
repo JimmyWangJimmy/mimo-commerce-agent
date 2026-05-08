@@ -79,6 +79,17 @@ def campaign_prompt(
     "winner": {{}},
     "loser": {{}},
     "totals": {{}},
+    "commercial_signal": {{
+      "action": "加码/小额复测/暂停扩量",
+      "recommended_budget": 0,
+      "expected_revenue": 0,
+      "expected_orders": 0,
+      "aov": 0,
+      "blended_cac": 0,
+      "winner_cac": 0,
+      "reason": "为什么这么分配预算",
+      "budget_rule": "什么情况继续加，什么情况立刻停"
+    }},
     "next_bets": ["下一轮怎么加码"],
     "playbook_update": "应该沉淀进类目手册的话"
   }},
@@ -98,6 +109,7 @@ def campaign_prompt(
 - decision_board 必须具体。老板看完要知道今天做什么、什么数据不好就停、什么信号出现就加码。
 - 如果输入里有 category_playbook，要利用它，但不要照抄。
 - 如果输入里有 experiment_results，必须利用真实表现修正建议，不要还像没投放过一样从零判断。
+- 如果输入里有 experiment_results，learning_loop.commercial_signal 必须给出下一轮预算动作和预估订单，不要只说“继续观察”。
 
 输入数据:
 {json.dumps(payload, ensure_ascii=False)}

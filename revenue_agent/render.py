@@ -81,6 +81,7 @@ def _top_test(plan: dict) -> dict:
 def render_investor_onepager(plan: dict) -> str:
     loop = plan.get("learning_loop") or {}
     totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
     patch = build_playbook_patch(plan)
     top = _top_test(plan)
     lines = [
@@ -100,6 +101,9 @@ def render_investor_onepager(plan: dict) -> str:
         f"- Winning action: {top.get('experiment') or top.get('name') or top.get('hook') or ''}",
         f"- ROAS: {totals.get('roas', 'n/a')}",
         f"- Orders: {totals.get('orders', 'n/a')}",
+        f"- Next budget action: {commercial.get('action', 'n/a')}",
+        f"- Recommended next spend: {commercial.get('recommended_budget', 'n/a')}",
+        f"- Expected next revenue: {commercial.get('expected_revenue', 'n/a')}",
         "",
         "## Data Flywheel",
         "",
@@ -121,6 +125,7 @@ def render_investor_onepager(plan: dict) -> str:
 def render_operator_onepager(plan: dict) -> str:
     loop = plan.get("learning_loop") or {}
     totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
     board = plan.get("decision_board") or {}
     top = _top_test(plan)
     ship = "".join(f"<li>{html.escape(str(item))}</li>" for item in board.get("ship_today", [])[:4])
@@ -156,6 +161,7 @@ def render_operator_onepager(plan: dict) -> str:
       <div class="metric"><b>总收入</b><strong>{totals.get('revenue', 0)}</strong></div>
       <div class="metric"><b>订单</b><strong>{totals.get('orders', 0)}</strong></div>
       <div class="metric"><b>ROAS</b><strong>{totals.get('roas', 0)}</strong></div>
+      <div class="metric"><b>下一轮预算</b><strong>{commercial.get('recommended_budget', 0)}</strong></div>
       <div class="metric"><b>胜出实验</b><strong>{html.escape(str(top.get('experiment') or top.get('name') or ''))}</strong></div>
     </div>
     <div class="grid">
@@ -163,6 +169,11 @@ def render_operator_onepager(plan: dict) -> str:
       <section><h2>这些情况就停</h2><ul>{kill}</ul></section>
       <section><h2>下一轮只押这些</h2><ul>{next_bets}</ul></section>
     </div>
+    <section style="margin-top:14px">
+      <h2>预算判断</h2>
+      <p><b>{html.escape(str(commercial.get('action', '先小额复测')))}</b>：{html.escape(str(commercial.get('reason', '等真实结果回来后再加预算。')))}</p>
+      <p>{html.escape(str(commercial.get('budget_rule', '先看购买意图，不用预算硬救。')))}</p>
+    </section>
     <section style="margin-top:14px">
       <h2>第一条内容怎么开头</h2>
       <div class="hook">{html.escape(str(top.get('hook') or ''))}</div>
@@ -177,6 +188,7 @@ def render_html(plan: dict) -> str:
     board = plan.get("decision_board") or {}
     playbook = plan.get("playbook") or {}
     loop = plan.get("learning_loop") or {}
+    commercial = loop.get("commercial_signal") or {}
     source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
     patch = build_playbook_patch(plan)
     patch_json = json.dumps(patch, ensure_ascii=False, indent=2) if patch else ""
@@ -231,6 +243,19 @@ def render_html(plan: dict) -> str:
     next_bets = "".join(f"<li>{html.escape(str(item))}</li>" for item in loop.get("next_bets", []))
     learning_section = ""
     if loop:
+        commercial_body = ""
+        if commercial:
+            commercial_body = f"""
+            <h3>下一轮预算怎么打</h3>
+            <div class="metric-row">
+              <div><b>动作</b><strong>{html.escape(str(commercial.get('action', '')))}</strong></div>
+              <div><b>建议预算</b><strong>{commercial.get('recommended_budget', 0)}</strong></div>
+              <div><b>预估订单</b><strong>{commercial.get('expected_orders', 0)}</strong></div>
+              <div><b>预估收入</b><strong>{commercial.get('expected_revenue', 0)}</strong></div>
+            </div>
+            <p><b>判断：</b>{html.escape(str(commercial.get('reason', '')))}</p>
+            <p><b>预算线：</b>{html.escape(str(commercial.get('budget_rule', '')))}</p>
+            """
         learning_section = _card(
             "跑完之后学到了什么",
             f"""
@@ -243,6 +268,7 @@ def render_html(plan: dict) -> str:
             </div>
             <table><thead><tr><th>实验</th><th>渠道</th><th>开头</th><th>收藏率</th><th>点击率</th><th>订单</th><th>ROAS</th></tr></thead><tbody>{result_rows}</tbody></table>
             <h3>下一轮只做这些</h3><ul>{next_bets}</ul>
+            {commercial_body}
             <p><b>沉淀进手册：</b>{html.escape(loop.get('playbook_update', ''))}</p>
             {f'<h3>手册补丁</h3><pre>{html.escape(patch_json)}</pre>' if patch_json else ''}
             """,

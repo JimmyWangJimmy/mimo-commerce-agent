@@ -42,6 +42,8 @@ class AgentTest(unittest.TestCase):
             self.assertTrue(patch.exists())
             self.assertTrue(operator.exists())
             self.assertTrue(investor.exists())
+            self.assertIn("下一轮预算", operator.read_text("utf-8"))
+            self.assertIn("Next budget action", investor.read_text("utf-8"))
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
 
     def test_build_playbook_patch(self):
@@ -69,6 +71,8 @@ class AgentTest(unittest.TestCase):
         summary = summarize_results(load_results("examples/results.csv"))
         self.assertEqual(summary["winner"]["experiment"], "配料表翻瓶挑战")
         self.assertGreater(summary["totals"]["roas"], 1)
+        self.assertEqual(summary["commercial_signal"]["action"], "加码")
+        self.assertGreater(summary["commercial_signal"]["recommended_budget"], 0)
         self.assertIn("playbook_update", summary)
 
     def test_parse_results_from_text(self):

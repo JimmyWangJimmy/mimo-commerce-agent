@@ -12,6 +12,7 @@ It is a narrow wedge for commerce teams: ingest product context, reviews, and co
 - DM and support conversion scripts
 - seven-day growth experiment plan
 - decision board for what to ship, kill, or double down on
+- commercial signal for next budget, expected orders, AOV, and CAC
 - category playbook memory for reusable channel/category rules
 
 The model call uses Xiaomi MiMo Token Plan when `MIMO_API_KEY` and `MIMO_BASE_URL` are set. The repo keeps secrets out of disk and falls back to a deterministic local planner when credentials are missing.
@@ -90,7 +91,7 @@ reviews -> pain points -> offer angles -> creative tests -> DM/support scripts -
 With experiment results attached, the loop becomes:
 
 ```text
-campaign results -> winner/loser -> next bet -> category playbook update
+campaign results -> winner/loser -> budget action -> next bet -> category playbook update
 ```
 
 This repo is the first slice of a larger agentic commerce OS.
