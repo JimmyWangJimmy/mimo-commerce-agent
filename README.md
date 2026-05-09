@@ -45,6 +45,7 @@ Open `output/demo/index.html` or `output/mimo-demo/index.html` after running.
 
 Each run writes:
 
+- `demo_room.html`: shareable entry that links every generated demo artifact
 - `index.html`: full operator dashboard
 - `operator_onepager.html`: compact shareable execution memo
 - `investor_onepager.md`: product/VC one-pager

@@ -16,6 +16,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "operator_onepager.html").write_text(render_operator_onepager(plan), "utf-8")
     (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
+    (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
     patch = build_playbook_patch(plan)
     if patch:
         (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -135,6 +136,71 @@ def render_category_memory(plan: dict) -> str:
       <h2>Memory Patch JSON</h2>
       <pre>{html.escape(json.dumps(patch, ensure_ascii=False, indent=2))}</pre>
     </section>
+  </main>
+</body>
+</html>
+"""
+
+
+def render_demo_room(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
+    source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
+    links = [
+        ("index.html", "运营看板", "今天上线什么、停什么、加码什么"),
+        ("operator_onepager.html", "老板一页纸", "收入、订单、预算和第一条内容"),
+        ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
+        ("investor_onepager.md", "投资人一页纸", "产品楔子、数据飞轮和当前 demo 信号"),
+        ("campaign.json", "结构化输出", "给 API、自动化和二次处理使用"),
+    ]
+    link_cards = "".join(
+        f"<a class='card' href='{html.escape(href)}'><b>{html.escape(title)}</b><span>{html.escape(desc)}</span><code>{html.escape(href)}</code></a>"
+        for href, title, desc in links
+    )
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MiMo Commerce Agent Demo Room</title>
+  <style>
+    body {{ margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17221d; background: #fbfcfa; }}
+    header {{ padding: 46px 6vw 28px; background: #eaf3ee; border-bottom: 1px solid #d6ded9; }}
+    main {{ max-width: 1120px; margin: auto; padding: 28px 6vw 68px; }}
+    h1 {{ margin: 0 0 12px; font-size: 54px; line-height: 1.03; letter-spacing: 0; }}
+    .summary {{ max-width: 820px; font-size: 20px; color: #26332d; }}
+    .pills {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }}
+    .pill {{ border: 1px solid #d6ded9; border-radius: 999px; background: white; padding: 5px 9px; font-size: 13px; }}
+    .metrics {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }}
+    .metric, .card {{ background: white; border: 1px solid #d6ded9; border-radius: 8px; padding: 16px; }}
+    .metric b {{ display: block; color: #66736e; font-size: 13px; }}
+    .metric strong {{ display: block; margin-top: 4px; font-size: 28px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }}
+    .card {{ display: flex; min-height: 150px; flex-direction: column; gap: 10px; color: inherit; text-decoration: none; }}
+    .card b {{ font-size: 20px; }}
+    .card span {{ color: #33413b; }}
+    .card code {{ margin-top: auto; color: #116b55; }}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="pills">
+      <span class="pill">{html.escape(source_label)}</span>
+      <span class="pill">Demo Room</span>
+      <span class="pill">可分享入口</span>
+    </div>
+    <h1>MiMo Commerce Agent Demo Room</h1>
+    <p class="summary">{html.escape(plan.get('executive_summary', ''))}</p>
+  </header>
+  <main>
+    <div class="metrics">
+      <div class="metric"><b>ROAS</b><strong>{totals.get('roas', 0)}</strong></div>
+      <div class="metric"><b>订单</b><strong>{totals.get('orders', 0)}</strong></div>
+      <div class="metric"><b>建议预算</b><strong>{commercial.get('recommended_budget', 0)}</strong></div>
+      <div class="metric"><b>预算动作</b><strong>{html.escape(str(commercial.get('action', '')))}</strong></div>
+    </div>
+    <div class="grid">{link_cards}</div>
   </main>
 </body>
 </html>
