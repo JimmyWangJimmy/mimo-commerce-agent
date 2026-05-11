@@ -22,6 +22,9 @@ class AgentTest(unittest.TestCase):
         self.assertIn("landing_page_copy", plan)
         self.assertIn("dm_scripts", plan)
         self.assertIn("decision_board", plan)
+        self.assertIn("objection_queue", plan)
+        self.assertGreaterEqual(len(plan["objection_queue"]), 2)
+        self.assertIn("reply", plan["objection_queue"][0])
         self.assertEqual(plan["playbook"]["category"], "ready-to-drink tea")
 
     def test_render_outputs(self):
@@ -46,6 +49,7 @@ class AgentTest(unittest.TestCase):
             self.assertTrue(investor.exists())
             self.assertTrue(memory.exists())
             self.assertTrue(room.exists())
+            self.assertIn("销售跟进队列", page.read_text("utf-8"))
             self.assertIn("下一轮预算", operator.read_text("utf-8"))
             self.assertIn("Next budget action", investor.read_text("utf-8"))
             self.assertIn("这轮新增记忆", memory.read_text("utf-8"))

@@ -87,6 +87,33 @@ def keyword_cloud(reviews: list[dict], limit: int = 30) -> list[dict]:
     return [{"term": term, "count": count} for term, count in words.most_common(limit)]
 
 
+def build_objection_queue(product: dict, pains: list[dict], limit: int = 5) -> list[dict]:
+    proof = ", ".join(product.get("proof_points", [])[:3])
+    reply_by_pain = {
+        "口感不确定": f"先别按广告判断口感。建议先买试饮装，冷藏后喝；如果你怕甜，重点看配料里是否有代糖。{proof}",
+        "成分信任": f"这个问题要直接回配料表，不要讲概念。可以把瓶身配料和检测信息发给对方：{proof}",
+        "价格阻力": "先不要争单瓶价格。回复时对比的是买错一箱、喝不完、退货的成本，再给首单试饮方案。",
+        "包装体验": "这类问题要先补偿体验，再解释产品。先确认是否漏液/破损，给补发或退款入口，不要让用户继续争论。",
+        "物流体验": "先道歉并给预计到货或补偿方案。物流慢会拖累复购，不要用营销话术盖过去。",
+        "效果预期": "不要承诺健康效果。把话术改成使用场景：办公室下午替代奶茶/咖啡，强调低负担和可验证配料。",
+    }
+    queue = []
+    for pain in pains[:limit]:
+        pain_name = str(pain.get("pain") or "")
+        evidence = pain.get("evidence") or []
+        queue.append(
+            {
+                "objection": pain_name,
+                "priority": "high" if float(pain.get("share") or 0) >= 0.2 else "medium",
+                "why_it_blocks_order": f"{pain_name} 被提到 {pain.get('mentions', 0)} 次，用户还没准备好下单。",
+                "evidence": evidence[0] if evidence else "",
+                "reply": reply_by_pain.get(pain_name, "先承认顾虑，再给一个可验证证据和低风险试用入口。"),
+                "owner": "客服/私域运营",
+            }
+        )
+    return queue
+
+
 def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = None, results_summary: dict | None = None) -> dict:
     pains = detect_pains(reviews)
     top_pain = pains[0]["pain"] if pains else "trust"
@@ -177,6 +204,7 @@ def fallback_plan(product: dict, reviews: list[dict], playbook: dict | None = No
         ],
         "voice_of_customer": extract_voice_of_customer(reviews),
         "keyword_cloud": keyword_cloud(reviews),
+        "objection_queue": build_objection_queue(product, pains),
         "playbook": playbook or {},
         "decision_board": {
             "ship_today": [

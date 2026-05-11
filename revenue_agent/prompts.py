@@ -63,6 +63,16 @@ def campaign_prompt(
   "dm_scripts": [
     {{"trigger": "触发场景", "reply": "私信/评论回复话术"}}
   ],
+  "objection_queue": [
+    {{
+      "objection": "阻碍下单的顾虑",
+      "priority": "high/medium",
+      "why_it_blocks_order": "为什么会挡住成交",
+      "evidence": "用户原话",
+      "reply": "客服或私域运营今天就能发的回复",
+      "owner": "负责人"
+    }}
+  ],
   "seven_day_plan": ["Day 1...", "Day 2..."],
   "decision_board": {{
     "ship_today": ["今天必须上线的动作"],
@@ -104,6 +114,7 @@ def campaign_prompt(
 - 话术要像真实电商运营在飞书群里写给老板看的，不要像 AI 总结。
 - 能短就短。允许有判断、有取舍、有“不建议这么做”。
 - 明确指出买家为什么现在不下单，以及用什么证据推动下单。
+- objection_queue 要像销售跟进清单，不要像抽象洞察；每条必须能直接复制给客服或私域运营。
 - 保留评论里的真实语言，不要过度美化。
 - 脚本要有人味，别每句都像广告语。可以用“先别买”“这个坑挺常见”“我会先测这个”这种表达。
 - decision_board 必须具体。老板看完要知道今天做什么、什么数据不好就停、什么信号出现就加码。

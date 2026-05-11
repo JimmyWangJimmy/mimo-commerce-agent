@@ -10,6 +10,7 @@ It is a narrow wedge for commerce teams: ingest product context, reviews, and co
 - creator brief
 - landing-page copy
 - DM and support conversion scripts
+- objection queue for sales/support follow-up
 - seven-day growth experiment plan
 - decision board for what to ship, kill, or double down on
 - commercial signal for next budget, expected orders, AOV, and CAC

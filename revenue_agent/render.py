@@ -347,6 +347,16 @@ def render_html(plan: dict) -> str:
         f"<li><b>{html.escape(item.get('trigger', ''))}</b><br>{html.escape(item.get('reply', ''))}</li>"
         for item in plan.get("dm_scripts", [])
     )
+    objection_rows = "".join(
+        "<tr>"
+        f"<td>{html.escape(str(item.get('priority', '')))}</td>"
+        f"<td>{html.escape(str(item.get('objection', '')))}</td>"
+        f"<td>{html.escape(str(item.get('evidence', '')))}</td>"
+        f"<td>{html.escape(str(item.get('reply', '')))}</td>"
+        f"<td>{html.escape(str(item.get('owner', '')))}</td>"
+        "</tr>"
+        for item in plan.get("objection_queue", [])
+    )
     days = "".join(f"<li>{html.escape(str(day))}</li>" for day in plan.get("seven_day_plan", []))
     ship = "".join(f"<li>{html.escape(str(item))}</li>" for item in board.get("ship_today", []))
     kill = "".join(f"<li>{html.escape(str(item))}</li>" for item in board.get("kill_if", []))
@@ -469,6 +479,7 @@ def render_html(plan: dict) -> str:
     {_card("类目手册里已经知道的事", f"<ul class='grid'>{playbook_rules}</ul>" if playbook_rules else "<p>这个类目还没有沉淀规则，先用本次评论跑第一轮。</p>")}
     {_card("别怎么卖，要这么说", f"<ul class='grid'>{angles}</ul>")}
     {_card("今天能发的内容", f"<div class='tests'>{tests}</div>")}
+    {_card("销售跟进队列", f"<table><thead><tr><th>优先级</th><th>顾虑</th><th>原话</th><th>怎么回</th><th>负责人</th></tr></thead><tbody>{objection_rows}</tbody></table>" if objection_rows else "<p>没有检测到需要人工跟进的购买顾虑。</p>")}
     {_card("评论和私信怎么回", f"<ul class='grid'>{dm}</ul>")}
     {_card("这一周怎么跑", f"<ol>{days}</ol>")}
   </main>
