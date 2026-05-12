@@ -52,6 +52,7 @@ Each run writes:
 - `investor_onepager.md`: product/VC one-pager
 - `category_memory.html`: readable category memory and data flywheel page
 - `objection_queue.csv`: sales/support follow-up queue for handoff
+- `experiment_backlog.csv`: content, media, and growth task backlog for execution
 - `playbook_patch.json`: category memory patch
 
 Or serve the generated report locally:

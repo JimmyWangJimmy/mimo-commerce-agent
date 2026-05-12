@@ -19,6 +19,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
     write_objection_csv(plan, target / "objection_queue.csv")
+    write_experiment_backlog_csv(plan, target / "experiment_backlog.csv")
     patch = build_playbook_patch(plan)
     if patch:
         (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
@@ -31,6 +32,48 @@ def write_objection_csv(plan: dict, path: Path) -> None:
         writer.writeheader()
         for item in plan.get("objection_queue", []):
             writer.writerow(item)
+
+
+def write_experiment_backlog_csv(plan: dict, path: Path) -> None:
+    fields = ["task_type", "name", "owner", "hook", "success_metric", "next_step"]
+    rows = []
+    for test in plan.get("creative_tests", []):
+        rows.append(
+            {
+                "task_type": "content_test",
+                "name": test.get("name", ""),
+                "owner": "内容/投放",
+                "hook": test.get("hook", ""),
+                "success_metric": test.get("success_metric", ""),
+                "next_step": test.get("hypothesis", ""),
+            }
+        )
+    for index, day in enumerate(plan.get("seven_day_plan", []), start=1):
+        rows.append(
+            {
+                "task_type": "operating_plan",
+                "name": f"Day {index}",
+                "owner": "增长负责人",
+                "hook": "",
+                "success_metric": "当天完成并记录反馈",
+                "next_step": day,
+            }
+        )
+    for item in (plan.get("learning_loop") or {}).get("next_bets", []):
+        rows.append(
+            {
+                "task_type": "next_bet",
+                "name": "下一轮实验",
+                "owner": "增长负责人",
+                "hook": "",
+                "success_metric": "复测 ROAS、收藏率、购买意图",
+                "next_step": item,
+            }
+        )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def render_markdown(plan: dict) -> str:
@@ -163,6 +206,7 @@ def render_demo_room(plan: dict) -> str:
         ("operator_onepager.html", "老板一页纸", "收入、订单、预算和第一条内容"),
         ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
         ("objection_queue.csv", "销售跟进 CSV", "给客服和私域团队直接分派"),
+        ("experiment_backlog.csv", "实验任务 CSV", "给内容、投放和增长负责人排期"),
         ("investor_onepager.md", "投资人一页纸", "产品楔子、数据飞轮和当前 demo 信号"),
         ("campaign.json", "结构化输出", "给 API、自动化和二次处理使用"),
     ]
