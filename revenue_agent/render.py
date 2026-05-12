@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import html
 import json
 from pathlib import Path
@@ -17,9 +18,19 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
+    write_objection_csv(plan, target / "objection_queue.csv")
     patch = build_playbook_patch(plan)
     if patch:
         (target / "playbook_patch.json").write_text(json.dumps(patch, ensure_ascii=False, indent=2) + "\n", "utf-8")
+
+
+def write_objection_csv(plan: dict, path: Path) -> None:
+    fields = ["objection", "priority", "why_it_blocks_order", "evidence", "reply", "owner"]
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        for item in plan.get("objection_queue", []):
+            writer.writerow(item)
 
 
 def render_markdown(plan: dict) -> str:
@@ -151,6 +162,7 @@ def render_demo_room(plan: dict) -> str:
         ("index.html", "运营看板", "今天上线什么、停什么、加码什么"),
         ("operator_onepager.html", "老板一页纸", "收入、订单、预算和第一条内容"),
         ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
+        ("objection_queue.csv", "销售跟进 CSV", "给客服和私域团队直接分派"),
         ("investor_onepager.md", "投资人一页纸", "产品楔子、数据飞轮和当前 demo 信号"),
         ("campaign.json", "结构化输出", "给 API、自动化和二次处理使用"),
     ]

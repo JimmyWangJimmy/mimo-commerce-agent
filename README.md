@@ -51,6 +51,7 @@ Each run writes:
 - `operator_onepager.html`: compact shareable execution memo
 - `investor_onepager.md`: product/VC one-pager
 - `category_memory.html`: readable category memory and data flywheel page
+- `objection_queue.csv`: sales/support follow-up queue for handoff
 - `playbook_patch.json`: category memory patch
 
 Or serve the generated report locally:
