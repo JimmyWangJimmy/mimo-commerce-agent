@@ -16,6 +16,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "brief.md").write_text(render_markdown(plan), "utf-8")
     (target / "operator_onepager.html").write_text(render_operator_onepager(plan), "utf-8")
     (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
+    (target / "founder_update.md").write_text(render_founder_update(plan), "utf-8")
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
     write_objection_csv(plan, target / "objection_queue.csv")
@@ -207,6 +208,7 @@ def render_demo_room(plan: dict) -> str:
         ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
         ("objection_queue.csv", "销售跟进 CSV", "给客服和私域团队直接分派"),
         ("experiment_backlog.csv", "实验任务 CSV", "给内容、投放和增长负责人排期"),
+        ("founder_update.md", "Founder Update", "给投资人和内部团队同步进展"),
         ("investor_onepager.md", "投资人一页纸", "产品楔子、数据飞轮和当前 demo 信号"),
         ("campaign.json", "结构化输出", "给 API、自动化和二次处理使用"),
     ]
@@ -305,6 +307,49 @@ def render_investor_onepager(plan: dict) -> str:
         "```",
     ]
     return "\n".join(lines) + "\n"
+
+
+def render_founder_update(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
+    top = _top_test(plan)
+    next_bets = loop.get("next_bets") or []
+    rows = [
+        "# Founder Update",
+        "",
+        "## Headline",
+        "",
+        plan.get("executive_summary", ""),
+        "",
+        "## Traction Signal",
+        "",
+        f"- ROAS: {totals.get('roas', 'n/a')}",
+        f"- Orders: {totals.get('orders', 'n/a')}",
+        f"- Revenue: {totals.get('revenue', 'n/a')}",
+        f"- Winning test: {top.get('experiment') or top.get('name') or top.get('hook') or 'n/a'}",
+        "",
+        "## What Changed This Week",
+        "",
+        f"- Built an operator pack from reviews, experiment results, and category memory.",
+        f"- Next budget action: {commercial.get('action', 'n/a')} with recommended spend {commercial.get('recommended_budget', 'n/a')}.",
+        f"- Exported sales and experiment backlogs for execution handoff.",
+        "",
+        "## Next Bets",
+        "",
+    ]
+    rows.extend(f"- {item}" for item in next_bets[:5])
+    rows.extend(
+        [
+            "",
+            "## Ask",
+            "",
+            "- Run this pack on 3 more SKU/category datasets.",
+            "- Connect one real ad account or shop export so the learning loop updates automatically.",
+            "- Keep category memory as the moat: every campaign should make the next run less generic.",
+        ]
+    )
+    return "\n".join(rows) + "\n"
 
 
 def render_operator_onepager(plan: dict) -> str:
