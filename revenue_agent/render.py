@@ -19,6 +19,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "founder_update.md").write_text(render_founder_update(plan), "utf-8")
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
+    (target / "boardroom.html").write_text(render_boardroom(plan), "utf-8")
     write_objection_csv(plan, target / "objection_queue.csv")
     write_experiment_backlog_csv(plan, target / "experiment_backlog.csv")
     patch = build_playbook_patch(plan)
@@ -204,6 +205,7 @@ def render_demo_room(plan: dict) -> str:
     source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
     links = [
         ("index.html", "运营看板", "今天上线什么、停什么、加码什么"),
+        ("boardroom.html", "Boardroom", "一页讲清收入循环和数据护城河"),
         ("operator_onepager.html", "老板一页纸", "收入、订单、预算和第一条内容"),
         ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
         ("objection_queue.csv", "销售跟进 CSV", "给客服和私域团队直接分派"),
@@ -259,6 +261,70 @@ def render_demo_room(plan: dict) -> str:
       <div class="metric"><b>预算动作</b><strong>{html.escape(str(commercial.get('action', '')))}</strong></div>
     </div>
     <div class="grid">{link_cards}</div>
+  </main>
+</body>
+</html>
+"""
+
+
+def render_boardroom(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
+    top = _top_test(plan)
+    playbook = plan.get("playbook") or {}
+    source_label = "MiMo 生成" if plan.get("source") == "mimo" else "本地兜底"
+    pains = _list_items([f"{item.get('pain')}：{item.get('mentions')} 次" for item in plan.get("pain_map", [])], 4)
+    queue = _list_items([f"{item.get('objection')} -> {item.get('owner')}" for item in plan.get("objection_queue", [])], 4)
+    next_bets = _list_items(loop.get("next_bets") or [], 4)
+    moat_items = []
+    moat_items.extend(playbook.get("winning_patterns") or [])
+    moat_items.extend(playbook.get("known_objections") or [])
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boardroom</title>
+  <style>
+    body {{ margin: 0; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17221d; background: #fbfcfa; }}
+    header {{ padding: 46px 6vw 30px; background: #eaf3ee; border-bottom: 1px solid #d6ded9; }}
+    main {{ max-width: 1180px; margin: auto; padding: 30px 6vw 70px; }}
+    h1 {{ margin: 0 0 12px; font-size: 56px; line-height: 1.03; letter-spacing: 0; }}
+    h2 {{ margin: 0 0 12px; font-size: 22px; }}
+    .summary {{ max-width: 840px; font-size: 20px; color: #26332d; }}
+    .pill {{ display: inline-block; border: 1px solid #d6ded9; border-radius: 999px; background: white; padding: 5px 9px; font-size: 13px; margin: 0 6px 16px 0; }}
+    .metrics, .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }}
+    section, .metric {{ background: white; border: 1px solid #d6ded9; border-radius: 8px; padding: 18px; }}
+    .metric b {{ display: block; color: #66736e; font-size: 13px; }}
+    .metric strong {{ display: block; margin-top: 4px; font-size: 30px; }}
+    ul {{ margin: 0; padding-left: 20px; }}
+    li + li {{ margin-top: 7px; }}
+    .grid {{ margin-top: 16px; }}
+  </style>
+</head>
+<body>
+  <header>
+    <span class="pill">{html.escape(source_label)}</span>
+    <span class="pill">Boardroom</span>
+    <h1>Commerce Revenue Agent</h1>
+    <p class="summary">{html.escape(plan.get('executive_summary', ''))}</p>
+  </header>
+  <main>
+    <div class="metrics">
+      <div class="metric"><b>ROAS</b><strong>{totals.get('roas', 0)}</strong></div>
+      <div class="metric"><b>订单</b><strong>{totals.get('orders', 0)}</strong></div>
+      <div class="metric"><b>建议预算</b><strong>{commercial.get('recommended_budget', 0)}</strong></div>
+      <div class="metric"><b>胜出实验</b><strong>{html.escape(str(top.get('experiment') or top.get('name') or ''))}</strong></div>
+    </div>
+    <div class="grid">
+      <section><h2>Buyer Problem</h2><ul>{pains}</ul></section>
+      <section><h2>Revenue Loop</h2><ul><li>评论 -> 购买阻力</li><li>阻力 -> 内容实验</li><li>投放结果 -> 预算动作</li><li>结果 -> 类目记忆</li></ul></section>
+      <section><h2>Execution Handoff</h2><ul>{queue}<li>experiment_backlog.csv -> 内容/投放</li><li>objection_queue.csv -> 客服/私域</li></ul></section>
+      <section><h2>Data Moat</h2><ul>{_list_items(moat_items, 5)}</ul></section>
+      <section><h2>Next Bets</h2><ul>{next_bets}</ul></section>
+      <section><h2>Ask</h2><ul><li>接 3 个真实 SKU 数据集</li><li>接入广告或店铺导出</li><li>把类目记忆做成持续更新资产</li></ul></section>
+    </div>
   </main>
 </body>
 </html>
