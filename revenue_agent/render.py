@@ -17,6 +17,7 @@ def write_outputs(plan: dict, out_dir: str | Path) -> None:
     (target / "operator_onepager.html").write_text(render_operator_onepager(plan), "utf-8")
     (target / "investor_onepager.md").write_text(render_investor_onepager(plan), "utf-8")
     (target / "founder_update.md").write_text(render_founder_update(plan), "utf-8")
+    (target / "pilot_plan.md").write_text(render_pilot_plan(plan), "utf-8")
     (target / "category_memory.html").write_text(render_category_memory(plan), "utf-8")
     (target / "demo_room.html").write_text(render_demo_room(plan), "utf-8")
     (target / "boardroom.html").write_text(render_boardroom(plan), "utf-8")
@@ -210,6 +211,7 @@ def render_demo_room(plan: dict) -> str:
         ("category_memory.html", "类目记忆", "已有规则、本轮新增记忆和下一轮实验"),
         ("objection_queue.csv", "销售跟进 CSV", "给客服和私域团队直接分派"),
         ("experiment_backlog.csv", "实验任务 CSV", "给内容、投放和增长负责人排期"),
+        ("pilot_plan.md", "Pilot Plan", "30 天试点计划、成功标准和所需数据"),
         ("founder_update.md", "Founder Update", "给投资人和内部团队同步进展"),
         ("investor_onepager.md", "投资人一页纸", "产品楔子、数据飞轮和当前 demo 信号"),
         ("campaign.json", "结构化输出", "给 API、自动化和二次处理使用"),
@@ -415,6 +417,55 @@ def render_founder_update(plan: dict) -> str:
             "- Keep category memory as the moat: every campaign should make the next run less generic.",
         ]
     )
+    return "\n".join(rows) + "\n"
+
+
+def render_pilot_plan(plan: dict) -> str:
+    loop = plan.get("learning_loop") or {}
+    totals = loop.get("totals") or {}
+    commercial = loop.get("commercial_signal") or {}
+    top = _top_test(plan)
+    rows = [
+        "# Pilot Plan",
+        "",
+        "## Goal",
+        "",
+        "Prove MiMo Commerce Agent can turn one SKU's reviews and campaign exports into revenue actions a commerce team will actually run.",
+        "",
+        "## 30-Day Scope",
+        "",
+        "- Week 1: ingest product context, reviews, past campaign results, and category playbook.",
+        "- Week 2: ship the first operator dashboard, sales queue, and experiment backlog.",
+        "- Week 3: run the top 2 creative tests and track comments, clicks, DMs, orders, and spend.",
+        "- Week 4: apply the playbook patch, update the next budget action, and prepare a founder/customer readout.",
+        "",
+        "## Success Criteria",
+        "",
+        f"- Keep blended ROAS above {totals.get('roas', 'the current baseline')} or explain exactly why a test should stop.",
+        f"- Produce at least one repeatable winning pattern from: {top.get('experiment') or top.get('name') or top.get('hook') or 'the winning test'}.",
+        "- Convert customer objections into an owner-assigned follow-up queue.",
+        "- Export a next experiment backlog that the content and media teams can run without rewriting the plan.",
+        "",
+        "## Data Needed",
+        "",
+        "- Product JSON: product name, audience, offer, proof points, category.",
+        "- Review CSV: rating, title, body.",
+        "- Campaign result CSV: impressions, views, saves, clicks, DMs, orders, spend, revenue.",
+        "- Optional category playbook: known objections, winning patterns, bad patterns, metrics.",
+        "",
+        "## Deliverables",
+        "",
+        "- Boardroom page for executives.",
+        "- Operator dashboard for daily action.",
+        "- Sales objection queue CSV.",
+        "- Experiment backlog CSV.",
+        "- Founder update and investor one-pager.",
+        "- Playbook patch that turns this pilot into reusable category memory.",
+        "",
+        "## Commercial Next Step",
+        "",
+        f"Start with a controlled budget action: {commercial.get('action', 'small retest')} at {commercial.get('recommended_budget', 'a capped test budget')}. If the signal holds, expand to two adjacent SKUs in the same category.",
+    ]
     return "\n".join(rows) + "\n"
 
 

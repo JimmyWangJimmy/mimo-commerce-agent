@@ -52,6 +52,7 @@ Each run writes:
 - `operator_onepager.html`: compact shareable execution memo
 - `investor_onepager.md`: product/VC one-pager
 - `founder_update.md`: founder/investor progress update with traction and asks
+- `pilot_plan.md`: 30-day pilot plan, success criteria, and required data
 - `category_memory.html`: readable category memory and data flywheel page
 - `objection_queue.csv`: sales/support follow-up queue for handoff
 - `experiment_backlog.csv`: content, media, and growth task backlog for execution

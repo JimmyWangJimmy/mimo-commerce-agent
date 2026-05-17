@@ -46,6 +46,7 @@ class AgentTest(unittest.TestCase):
             backlog_csv = Path(tmp) / "experiment_backlog.csv"
             founder = Path(tmp) / "founder_update.md"
             boardroom = Path(tmp) / "boardroom.html"
+            pilot = Path(tmp) / "pilot_plan.md"
             self.assertTrue(campaign.exists())
             self.assertTrue(page.exists())
             self.assertTrue(patch.exists())
@@ -57,6 +58,7 @@ class AgentTest(unittest.TestCase):
             self.assertTrue(backlog_csv.exists())
             self.assertTrue(founder.exists())
             self.assertTrue(boardroom.exists())
+            self.assertTrue(pilot.exists())
             self.assertIn("销售跟进队列", page.read_text("utf-8"))
             csv_body = objection_csv.read_text("utf-8")
             self.assertIn("objection,priority,why_it_blocks_order,evidence,reply,owner", csv_body)
@@ -72,6 +74,10 @@ class AgentTest(unittest.TestCase):
             self.assertIn("Boardroom", boardroom_body)
             self.assertIn("Revenue Loop", boardroom_body)
             self.assertIn("Data Moat", boardroom_body)
+            pilot_body = pilot.read_text("utf-8")
+            self.assertIn("Pilot Plan", pilot_body)
+            self.assertIn("Success Criteria", pilot_body)
+            self.assertIn("Data Needed", pilot_body)
             self.assertIn("下一轮预算", operator.read_text("utf-8"))
             self.assertIn("Next budget action", investor.read_text("utf-8"))
             self.assertIn("这轮新增记忆", memory.read_text("utf-8"))
@@ -85,6 +91,7 @@ class AgentTest(unittest.TestCase):
             self.assertIn("experiment_backlog.csv", room_body)
             self.assertIn("founder_update.md", room_body)
             self.assertIn("boardroom.html", room_body)
+            self.assertIn("pilot_plan.md", room_body)
             self.assertIn("建议预算", room_body)
             self.assertEqual(json.loads(campaign.read_text("utf-8"))["source"], "local-fallback")
 
